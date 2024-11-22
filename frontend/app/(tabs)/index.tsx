@@ -4,67 +4,65 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   StyleSheet,
   ActivityIndicator,
   Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
-
-interface ImageAsset {
-  uri: string;
-}
+import { Video } from 'expo-av'; // Import the Video component
+import { ImagePickerAsset } from 'expo-image-picker';
 
 const App: React.FC = () => {
-  const [image, setImage] = useState<ImageAsset | null>(null);
+  const [video, setVideo] = useState<ImagePickerAsset | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const selectImage = async () => {
+  const selectVideo = async () => {
     // Request permission to access media library
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      Alert.alert('Permission Denied', 'You need to grant permission to access your photos.');
+      Alert.alert('Permission Denied', 'You need to grant permission to access your videos.');
       return;
     }
 
-    // Launch the image picker
+    // Launch the video picker
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
       allowsEditing: true,
       quality: 1,
     });
 
     if (!result.canceled && result.assets) {
-      setImage(result.assets[0]);
+      setVideo(result.assets[0]);
     }
   };
 
-  const uploadImage = async () => {
-    if (!image) {
-      Alert.alert('No Image', 'Please select an image first.');
+  const uploadVideo = async () => {
+    if (!video) {
+      Alert.alert('No Video', 'Please select a video first.');
       return;
     }
 
     setLoading(true);
 
     const formData = new FormData();
-    formData.append('file', {
-      uri: image.uri,
-      type: 'image/jpeg', 
-      name: 'upload.jpg',
+    formData.append('video', {
+      uri: video.uri,
+      type: 'video/mp4', // Adjust the MIME type if necessary
+      name: 'upload.mp4',
     } as any);
 
     try {
-      const response = await axios.post('https://your-api-endpoint.com/upload', formData, {
+      const response = await axios.post('http://localhost:8080/image_posting', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      Alert.alert('Success', 'Image uploaded successfully!');
+      console.log('Response:', response.data);
+      Alert.alert('Success', 'Video uploaded successfully!');
     } catch (error) {
-      Alert.alert('Error', 'Failed to upload image.');
+      Alert.alert('Error', 'Failed to upload video.');
     } finally {
       setLoading(false);
     }
@@ -72,27 +70,33 @@ const App: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Image Upload App</Text>
+      <Text style={styles.title}>Video Upload App</Text>
 
-      <TouchableOpacity style={styles.button} onPress={selectImage}>
-        <Text style={styles.buttonText}>Select Image</Text>
+      <TouchableOpacity style={styles.button} onPress={selectVideo}>
+        <Text style={styles.buttonText}>Select Video</Text>
       </TouchableOpacity>
 
-      {image && (
-        <View style={styles.imageContainer}>
-          <Image source={{ uri: image.uri }} style={styles.image} />
+      {video && (
+        <View style={styles.videoContainer}>
+          <Video
+            source={{ uri: video.uri }}
+            style={styles.video}
+            useNativeControls
+            resizeMode="contain"
+            isLooping
+          />
         </View>
       )}
 
       <TouchableOpacity
         style={[styles.button, styles.uploadButton]}
-        onPress={uploadImage}
+        onPress={uploadVideo}
         disabled={loading}
       >
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Upload Image</Text>
+          <Text style={styles.buttonText}>Upload Video</Text>
         )}
       </TouchableOpacity>
     </SafeAreaView>
@@ -123,15 +127,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
-  imageContainer: {
+  videoContainer: {
     marginVertical: 20,
     alignItems: 'center',
   },
-  image: {
-    width: 200,
+  video: {
+    width: 300,
     height: 200,
-    borderRadius: 10,
-    resizeMode: 'cover',
   },
   uploadButton: {
     backgroundColor: '#28a745',
