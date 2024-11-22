@@ -18,7 +18,6 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const selectVideo = async () => {
-    // Request permission to access media library
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
@@ -26,7 +25,6 @@ const App: React.FC = () => {
       return;
     }
 
-    // Launch the video picker
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Videos,
       allowsEditing: true,
@@ -49,7 +47,7 @@ const App: React.FC = () => {
     const formData = new FormData();
     formData.append('video', {
       uri: video.uri,
-      type: 'video/mp4', // Adjust the MIME type if necessary
+      type: 'video/mp4',
       name: 'upload.mp4',
     } as any);
 
