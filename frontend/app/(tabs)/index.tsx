@@ -16,6 +16,7 @@ import { ImagePickerAsset } from 'expo-image-picker';
 const App: React.FC = () => {
   const [video, setVideo] = useState<ImagePickerAsset | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [responseMessage, setResponseMessage] = useState<string | null>(null);
 
   const selectVideo = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -33,6 +34,7 @@ const App: React.FC = () => {
 
     if (!result.canceled && result.assets) {
       setVideo(result.assets[0]);
+      setResponseMessage(null); // Clear the response message on new selection
     }
   };
 
@@ -58,11 +60,26 @@ const App: React.FC = () => {
         },
       });
       console.log('Response:', response.data);
-      Alert.alert('Success', 'Video uploaded successfully!');
+      setResponseMessage(response.data.message || 'Video processed successfully!');
     } catch (error) {
-      Alert.alert('Error', 'Failed to upload video.');
+      console.error('Error:', error);
+      setResponseMessage('Failed to upload or process the video. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const resetApp = () => {
+    setVideo(null);
+    setResponseMessage(null);
+  };
+
+  const testBackend = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/health_check');
+      Alert.alert('Backend Status', 'Connected to backend successfully!');
+    } catch (error) {
+      Alert.alert('Backend Status', 'Failed to connect to the backend.');
     }
   };
 
@@ -86,6 +103,12 @@ const App: React.FC = () => {
         </View>
       )}
 
+      {responseMessage && (
+        <View style={styles.responseContainer}>
+          <Text style={styles.responseText}>{responseMessage}</Text>
+        </View>
+      )}
+
       <TouchableOpacity
         style={[styles.button, styles.uploadButton]}
         onPress={uploadVideo}
@@ -96,6 +119,14 @@ const App: React.FC = () => {
         ) : (
           <Text style={styles.buttonText}>Upload Video</Text>
         )}
+      </TouchableOpacity>
+
+      <TouchableOpacity style={[styles.button, styles.resetButton]} onPress={resetApp}>
+        <Text style={styles.buttonText}>Reset</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={[styles.button, styles.testButton]} onPress={testBackend}>
+        <Text style={styles.buttonText}>Test Backend Connection</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -133,8 +164,25 @@ const styles = StyleSheet.create({
     width: 300,
     height: 200,
   },
+  responseContainer: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: '#e9ecef',
+    borderRadius: 8,
+  },
+  responseText: {
+    color: '#343a40',
+    fontSize: 16,
+    textAlign: 'center',
+  },
   uploadButton: {
     backgroundColor: '#28a745',
+  },
+  resetButton: {
+    backgroundColor: '#dc3545',
+  },
+  testButton: {
+    backgroundColor: '#17a2b8',
   },
 });
 
