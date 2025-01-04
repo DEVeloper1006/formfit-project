@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, Alert } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  Text,
+  Alert,
+  Image,
+  ScrollView,
+  SafeAreaView,
+} from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import { Collapsible } from '@/components/Collapsible';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { Feather } from '@expo/vector-icons'; // Importing icons
 import axios from 'axios';
 
 export default function TabTwoScreen() {
@@ -14,42 +20,33 @@ export default function TabTwoScreen() {
 
   // Handle camera permissions
   if (!permission) {
-    return <Text>Requesting camera permission...</Text>;
+    return (
+      <View style={styles.permissionContainer}>
+        <Text style={styles.permissionText}>Requesting camera permission...</Text>
+      </View>
+    );
   }
 
   if (!permission.granted) {
     return (
       <View style={styles.permissionContainer}>
-        <Text style={styles.permissionText}>
-          We need your permission to access the camera
-        </Text>
+        <Text style={styles.permissionText}>We need your permission to access the camera.</Text>
         <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
+          <Feather name="camera" size={20} color="#fff" />
           <Text style={styles.buttonText}>Grant Permission</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  // Toggle between front and back cameras
-  const toggleCameraFacing = () => {
-    setCameraFacing((current) => (current === 'back' ? 'front' : 'back'));
-  };
+  const toggleCameraFacing = () => setCameraFacing((current) => (current === 'back' ? 'front' : 'back'));
 
-  // Start live streaming
-  const startStreaming = () => {
-    setIsStreaming(true);
-  };
+  const startStreaming = () => setIsStreaming(true);
+  const stopStreaming = () => setIsStreaming(false);
 
-  // Stop live streaming
-  const stopStreaming = () => {
-    setIsStreaming(false);
-  };
-
-  // Handle frame processing
   const onFrame = async (frame: any) => {
     if (isStreaming) {
       try {
-        // Process frame data as needed
         await axios.post('http://localhost:8080/live-stream', {
           frame: frame.data,
         });
@@ -62,108 +59,177 @@ export default function TabTwoScreen() {
   };
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      // Remove or replace headerImage as needed
-    >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-
-      {/* Your existing content */}
-
-      {/* Live Streaming Feature */}
-      <Collapsible title="Live Streaming with Camera">
-        <ThemedText>
-          This feature allows live streaming using the device camera, sending frames to a Flask
-          backend for processing.
-        </ThemedText>
-        <View style={styles.cameraContainer}>
-          <CameraView
-            style={styles.camera}
-            facing={cameraFacing}
-            onFrame={onFrame}
-            frameProcessorFps={1} // Process one frame per second
-          >
-            <TouchableOpacity style={styles.toggleButton} onPress={toggleCameraFacing}>
-              <Text style={styles.toggleButtonText}>Flip Camera</Text>
-            </TouchableOpacity>
-          </CameraView>
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../../assets/Logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.appName}>FormFit</Text>
         </View>
-        <View style={styles.streamControls}>
-          {!isStreaming ? (
-            <TouchableOpacity style={styles.startButton} onPress={startStreaming}>
-              <Text style={styles.buttonText}>Start Streaming</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.stopButton} onPress={stopStreaming}>
-              <Text style={styles.buttonText}>Stop Streaming</Text>
-            </TouchableOpacity>
-          )}
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.liveStreamingContainer}>
+          <Text style={styles.titleText}>Live Streaming</Text>
+          <Text style={styles.descriptionText}>
+            Stream live using your device's camera and send frames to our backend for processing.
+          </Text>
+
+          <View style={styles.cameraContainer}>
+            <CameraView
+              style={styles.camera}
+              facing={cameraFacing}
+              onFrame={onFrame}
+            >
+              <TouchableOpacity style={styles.flipButton} onPress={toggleCameraFacing}>
+                <Feather name="refresh-cw" size={24} color="#00FFCC" />
+                <Text style={styles.flipButtonText}>Flip Camera</Text>
+              </TouchableOpacity>
+            </CameraView>
+          </View>
+
+          <View style={styles.streamControls}>
+            {!isStreaming ? (
+              <TouchableOpacity style={styles.startButton} onPress={startStreaming}>
+                <Feather name="play" size={20} color="#fff" />
+                <Text style={styles.buttonText}>Start Streaming</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.stopButton} onPress={stopStreaming}>
+                <Feather name="stop-circle" size={20} color="#fff" />
+                <Text style={styles.buttonText}>Stop Streaming</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-      </Collapsible>
-    </ParallaxScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  // Your existing styles
-  permissionContainer: {
+  container: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: '#23272a', // Discord-like dark theme
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2c2f33',
+  },
+  logoContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  permissionText: {
+  logo: {
+    width: 40,
+    height: 40,
+    marginRight: 10,
+  },
+  appName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#7289da',
+  },
+  featureButton: {
+    backgroundColor: '#2c2f33',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#4f545c',
+  },
+  featureButtonText: {
+    fontSize: 14,
+    color: '#99aab5',
+  },
+  scrollContainer: {
+    paddingBottom: 20,
+  },
+  liveStreamingContainer: {
+    padding: 20,
+  },
+  titleText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#00FFCC',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  descriptionText: {
+    color: '#99aab5',
+    fontSize: 16,
     textAlign: 'center',
     marginBottom: 20,
   },
-  permissionButton: {
-    backgroundColor: '#007bff',
-    padding: 12,
-    borderRadius: 8,
-  },
   cameraContainer: {
-    marginVertical: 20,
-    height: 400,
-    backgroundColor: '#e9ecef',
+    height: 300,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#1C1C1C',
+    shadowColor: '#00FFCC',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 5,
   },
   camera: {
     flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
-  toggleButton: {
-    position: 'absolute',
-    bottom: 20,
-    alignSelf: 'center',
-    backgroundColor: '#007bff',
-    padding: 10,
-    borderRadius: 8,
+  flipButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#00FFCC',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    marginBottom: 10,
   },
-  toggleButtonText: {
-    color: '#fff',
-    fontSize: 16,
+  flipButtonText: {
+    color: '#000',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 5,
   },
   streamControls: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     marginTop: 10,
   },
   startButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#28a745',
-    padding: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 8,
+    marginHorizontal: 10,
+    shadowColor: '#28a745',
   },
   stopButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#dc3545',
-    padding: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 8,
+    marginHorizontal: 10,
+    shadowColor: '#dc3545',
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });
-

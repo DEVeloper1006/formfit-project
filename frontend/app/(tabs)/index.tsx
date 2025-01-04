@@ -7,10 +7,11 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
-import { Video } from 'expo-av'; // Import the Video component
+import { Video } from 'expo-av';
 import { ImagePickerAsset } from 'expo-image-picker';
 
 const App: React.FC = () => {
@@ -85,49 +86,84 @@ const App: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Video Upload App</Text>
-
-      <TouchableOpacity style={styles.button} onPress={selectVideo}>
-        <Text style={styles.buttonText}>Select Video</Text>
-      </TouchableOpacity>
-
-      {video && (
-        <View style={styles.videoContainer}>
-          <Video
-            source={{ uri: video.uri }}
-            style={styles.video}
-            useNativeControls
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../../assets/Logo.png')} // Path to your logo image
+            style={styles.logo}
             resizeMode="contain"
-            isLooping
           />
+          <Text style={styles.appName}>FormFit</Text>
         </View>
-      )}
+      </View>
 
-      {responseMessage && (
-        <View style={styles.responseContainer}>
-          <Text style={styles.responseText}>{responseMessage}</Text>
+      {/* Main Content */}
+      <View style={styles.content}>
+        {/* First Button Row: Select Video & Upload Video */}
+        <View style={styles.buttonRow}>
+          <TouchableOpacity
+            style={[styles.button, styles.selectButton]}
+            onPress={selectVideo}
+            accessibilityLabel="Select a video from your library"
+          >
+            <Text style={styles.buttonText}>Select Video</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.uploadButton]}
+            onPress={uploadVideo}
+            disabled={loading || !video}
+            accessibilityLabel="Upload the selected video"
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Upload Video</Text>
+            )}
+          </TouchableOpacity>
         </View>
-      )}
 
-      <TouchableOpacity
-        style={[styles.button, styles.uploadButton]}
-        onPress={uploadVideo}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Upload Video</Text>
+        {/* Second Button Row: Reset & Test Backend */}
+        <View style={styles.buttonRow}>
+          <TouchableOpacity
+            style={[styles.button, styles.resetButton]}
+            onPress={resetApp}
+            accessibilityLabel="Reset the app to initial state"
+          >
+            <Text style={styles.buttonText}>Reset</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.testButton]}
+            onPress={testBackend}
+            accessibilityLabel="Test backend connection"
+          >
+            <Text style={styles.buttonText}>Test Backend</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Video Display */}
+        {video && (
+          <View style={styles.videoContainer}>
+            <Video
+              source={{ uri: video.uri }}
+              style={styles.video}
+              useNativeControls
+              resizeMode="contain"
+              isLooping
+              accessibilityLabel="Selected video preview"
+            />
+          </View>
         )}
-      </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.button, styles.resetButton]} onPress={resetApp}>
-        <Text style={styles.buttonText}>Reset</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={[styles.button, styles.testButton]} onPress={testBackend}>
-        <Text style={styles.buttonText}>Test Backend Connection</Text>
-      </TouchableOpacity>
+        {/* Response Message */}
+        {responseMessage && (
+          <View style={styles.responseContainer}>
+            <Text style={styles.responseText}>{responseMessage}</Text>
+          </View>
+        )}
+      </View>
     </SafeAreaView>
   );
 };
@@ -135,54 +171,107 @@ const App: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    backgroundColor: '#23272a', // Discord-like soft black
   },
-  title: {
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2c2f33',
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  logo: {
+    width: 40,
+    height: 40,
+    marginRight: 10,
+  },
+  appName: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    color: '#7289da',
+  },
+  featureButton: {
+    backgroundColor: '#2c2f33',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#4f545c',
+  },
+  featureButtonText: {
+    fontSize: 14,
+    color: '#99aab5',
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
   button: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#36393f',
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     borderRadius: 8,
-    marginTop: 15,
+    borderWidth: 1,
+    borderColor: '#4f545c',
+    alignItems: 'center',
+    flex: 0.48,
+  },
+  resetButton: {
+    backgroundColor: '#36393f',
+    borderColor: '#ff5555',
+  },
+  testButton: {
+    backgroundColor: '#36393f',
+    borderColor: '#7289da',
   },
   buttonText: {
-    color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
+    color: '#99aab5',
+    textAlign: 'center',
   },
   videoContainer: {
-    marginVertical: 20,
+    marginTop: 20,
     alignItems: 'center',
+    backgroundColor: '#2c2f33',
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#4f545c',
   },
   video: {
-    width: 300,
+    width: '100%',
     height: 200,
+    borderRadius: 10,
   },
   responseContainer: {
     marginTop: 20,
     padding: 15,
-    backgroundColor: '#e9ecef',
-    borderRadius: 8,
+    backgroundColor: '#2c2f33',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#4f545c',
+    alignItems: 'center',
+    width: '100%',
   },
   responseText: {
-    color: '#343a40',
+    color: '#99aab5',
     fontSize: 16,
+    fontWeight: '500',
     textAlign: 'center',
-  },
-  uploadButton: {
-    backgroundColor: '#28a745',
-  },
-  resetButton: {
-    backgroundColor: '#dc3545',
-  },
-  testButton: {
-    backgroundColor: '#17a2b8',
   },
 });
 
