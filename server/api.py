@@ -35,8 +35,8 @@ class PoseEstimator:
             static_image_mode=False,
             model_complexity=1,
             smooth_landmarks=True,
-            min_detection_confidence=0.3,
-            min_tracking_confidence=0.3
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5
         )
 
     def process_frame(self, frame: np.ndarray) -> Optional[List[Tuple[float, float, float]]]:

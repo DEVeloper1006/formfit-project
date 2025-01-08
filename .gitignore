@@ -1,2 +1,4 @@
 server/data
 server/venv
+server/processed_data
+server/final_data
