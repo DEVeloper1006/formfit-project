@@ -39,7 +39,7 @@ const VideoRecorder = () => {
     console.log('Recording stopped');
   };
 
-  const processFrames = () => {
+  const processFrames = async () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
   
